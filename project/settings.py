@@ -27,7 +27,7 @@ STATIC_DIR = path.join(BASE_DIR, 'static')
 SECRET_KEY = 'django-insecure-ob2^=h)^7)gvh_^5f6&^pn=-l)l8q3d+ew)^-7sblv7y4h-4zs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 CSRF_TRUSTED_ORIGINS = ['http://excelcomp.lapeira.com']
 ALLOWED_HOSTS = ['www.excelcomp.lapeira.com', 'excelcomp.lapeira.com']
