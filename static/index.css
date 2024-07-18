@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+.nunito-font {
+    font-family: "Nunito", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+  }
+
+.bg-gradient-roaz{
+    background: rgb(193,160,41);
+    background: linear-gradient(135deg, rgba(193,160,41,1) 0%, rgba(194,171,91,1) 100%);
+}
+.main{
+    background-color: #27262c;
+    border-radius: 15px;
+}
+.form-control, .form-select{
+    border-radius: 50px;
+}
