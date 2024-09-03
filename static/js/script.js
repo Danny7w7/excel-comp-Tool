@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }else if (selectReport.value == 'broker_report'){
             console.log("Este entro aki huevon")
             createFileInputs("Broker Report")
-        }else{
-            console.log("etees el elses mrk")
+        }else if (selectReport.value == 'oneill_report'){
+            createFileInputs("O´NEILL Report")
+        }else if (selectReport.value == 'comparative_report'){
             createFileInputs()
         }
     });
@@ -21,7 +22,10 @@ function createFileInputs(text1, text2) {
     container.innerHTML = ''
     if (text1 === undefined) {
         container.innerHTML = ''
+        document.getElementById("btnSubmit").textContent = 'Generate'
         return;
+    }else{
+        document.getElementById("btnSubmit").textContent = 'Submit'
     }
     
     const outerDiv = document.createElement("div");
@@ -37,7 +41,7 @@ function createFileInputs(text1, text2) {
     input1.name = "file1";
     input1.className = "form-control";
     input1.type = "file";
-    if (text1 == 'Broker Report') {
+    if (text1 == 'Broker Report' || text1 == 'O´NEILL Report') {
         input1.accept = ".xlsx";
     }else{
         input1.accept = ".csv";
