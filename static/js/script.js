@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Selecciona todos los elementos <select> en la página
+    // Selecciona todos los elementos <select> en la pagina
     var selectReport = document.getElementById('selectReport');
 
     selectReport.addEventListener('change', function() {
