@@ -21,4 +21,7 @@ from excelcomp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('show_comparative/', views.show_comparative, name='show_comparative'),
+    path('login/', views.login_, name='login'),
+    path('logout/', views.logout_, name='logout')
 ]

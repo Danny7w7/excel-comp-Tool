@@ -23,9 +23,11 @@ function createFileInputs(text1, text2) {
     if (text1 === undefined) {
         container.innerHTML = ''
         document.getElementById("btnSubmit").textContent = 'Generate'
+        document.getElementById('show_report').hidden = false
         return;
     }else{
         document.getElementById("btnSubmit").textContent = 'Submit'
+        document.getElementById('show_report').hidden = true
     }
     
     const outerDiv = document.createElement("div");

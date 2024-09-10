@@ -1,3 +1,5 @@
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, HttpResponse
 
 from .models import *
@@ -9,12 +11,36 @@ import openpyxl
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 import os
+import math
 
 from datetime import datetime, timedelta
 
 
 # Create your views here.
 
+# Auth
+def login_(request):
+    if request.user.is_authenticated:
+        return redirect(index)
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect(index)
+        else:
+            msg = 'Wrong data, try again'
+            return render(request, 'login.html', {'msg':msg})
+    else:
+        return render(request, 'login.html')
+    
+def logout_(request):
+    logout(request)
+    return redirect(index)
+
+
+@login_required(login_url='/login')
 def index(request):
     if request.method == 'POST':
         dfs = []
@@ -34,14 +60,41 @@ def index(request):
         return generate_excel(dfs, request, get_last_8_letters(request.FILES['file1'].name), file)
     return render(request, 'index.html')
 
+def show_comparative(request):
+    supps = InsxCloudSupp.objects.all()
+    exceptions = []
+    policyNumberDict = {}
+
+    for supp in supps:
+        if supp.issuerPolicyNumber == '':
+            exceptions.append(supp)
+        else:
+            if supp.issuerPolicyNumber not in policyNumberDict:
+                policyNumberDict[supp.issuerPolicyNumber] = []
+            policyNumberDict[supp.issuerPolicyNumber].append(supp)
+
+    current_monday, previous_monday = get_two_mondays(datetime.now())
+    clients = classify_policies(policyNumberDict, current_monday, previous_monday)
+    context = {
+        'clients': clients,
+        'current_monday': current_monday,
+        'previous_monday': previous_monday
+    }
+    return render(request, 'show_comparative.html', context)
+
 def client_report(df):
     df.columns = df.columns.str.strip()
     filtered_df = df[df['Provider Status'] != 'Active']
     remaining_df = df[df['Provider Status'] == 'Active']
     for index, row in df.iterrows():
-        print(row['Date Submitted'])
         supp = InsxCloudSupp()
-        supp.issuerPolicyNumber = row['Issuer Policy Number']
+
+        if pd.isna(row['Issuer Policy Number']) or math.isnan(row['Issuer Policy Number']):
+            supp.issuerPolicyNumber = None
+        else:
+            supp.issuerPolicyNumber = int(row['Issuer Policy Number'])
+
+        print(supp.issuerPolicyNumber)
         supp.status = row['Provider Status']
         supp.firstName = row['First Name']
         supp.lastName = row['Last Name']
@@ -340,6 +393,54 @@ def generate_excel(dfs, request, nameUwU, file=None):
 
     return response
 
+def is_cancelled_or_terminated(status):
+    return status in ["Cancelled", "Terminated", None]
+
+def classify_policy(s1_status, s2_status):
+    if s1_status is None and s2_status == "Active":
+        return "Active_without_policynumber"
+    elif is_cancelled_or_terminated(s1_status) and s2_status == "Active":
+        return "New_Canceled"
+    elif s1_status == "Active" and is_cancelled_or_terminated(s2_status):
+        return "Recovered"
+    elif is_cancelled_or_terminated(s1_status) and is_cancelled_or_terminated(s2_status):
+        return "Cancelled_old"
+    elif s1_status == "Active" and s2_status == "Active":
+        return "Active"
+    else:
+        return "Unclassified"
+
+def classify_policies(policyNumberDict, current_monday, previous_monday):
+    classification = {
+        "New_Canceled": [],
+        "Recovered": [],
+        "Cancelled_old": [],
+        "Active": [],
+        "Active_without_policynumber": [],
+        "Unclassified": []
+    }
+    for policy_number, supps in policyNumberDict.items():
+        current_supp = next((supp for supp in supps if supp.uploadDate == current_monday), None)
+        previous_supp = next((supp for supp in supps if supp.uploadDate == previous_monday), None)
+        
+        s1_status = current_supp.status if current_supp else None
+        s2_status = previous_supp.status if previous_supp else None
+        
+        category = classify_policy(s1_status, s2_status)
+        
+        client_info = {
+            'policy_number': policy_number,
+            'broker': current_supp.broker if current_supp else (previous_supp.broker if previous_supp else ''),
+            'agency_name': current_supp.agencyName if current_supp else (previous_supp.agencyName if previous_supp else ''),
+            'first_name': current_supp.firstName if current_supp else (previous_supp.firstName if previous_supp else ''),
+            'last_name': current_supp.lastName if current_supp else (previous_supp.lastName if previous_supp else ''),
+            'previous_status': s2_status or 'Not policy',
+            'current_status': s1_status or 'Not policy'
+        }
+        
+        classification[category].append(client_info)
+        
+    return classification
 
 def get_extension(file):
     file_name, extension = os.path.splitext(file.name)
@@ -361,3 +462,11 @@ def get_mondays(start_date, end_date):
         current_date += timedelta(days=1)
     
     return mondays
+
+def get_two_mondays(date):
+    day_of_week = date.weekday()
+    days_to_monday = timedelta(days=-day_of_week)
+    current_monday = date + days_to_monday
+    previous_monday = current_monday - timedelta(days=7)
+    
+    return current_monday.date(), previous_monday.date()
