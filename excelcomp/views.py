@@ -60,6 +60,7 @@ def index(request):
         return generate_excel(dfs, request, get_last_8_letters(request.FILES['file1'].name), file)
     return render(request, 'index.html')
 
+@login_required(login_url='/login')
 def show_comparative(request):
     supps = InsxCloudSupp.objects.all()
     exceptions = []

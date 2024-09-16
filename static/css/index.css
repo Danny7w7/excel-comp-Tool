@@ -17,3 +17,21 @@
 .form-control, .form-select{
     border-radius: 50px;
 }
+
+/* Style show Comparative */
+.card {
+    transition: transform 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.card-text {
+    font-size: 2em;
+    font-weight: bold;
+    color: #27262c;
+}
+.header {
+    background-color: #27262c;
+    color: white;
+    padding: 15px 20px;
+}
