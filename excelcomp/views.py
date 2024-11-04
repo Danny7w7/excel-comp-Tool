@@ -251,7 +251,7 @@ def comparative_report():
             'lastName': supp_group[0].lastName,
         }
         # Agregar los estados para cada lunes
-        monday_dates = get_mondays(datetime(2024, 7, 15), datetime(2024, 11, 1))
+        monday_dates = get_mondays(datetime(2024, 7, 15), datetime(2025, 4, 1))
         for date in monday_dates:
             report_item[date] = ''  # Valor por defecto
         
